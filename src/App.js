@@ -10,27 +10,53 @@ function App() {
     "파이썬 독학",
   ]);
   //let [like, setLike] = useState(0);
-  const [like, setLike] = useState();
+  const [like, setLike] = useState([0,0,0]);
   const [modal, setModal] = useState(false);
 
   const likeCount = () => {
     setLike((prevCount) => prevCount + 1);
   };
 
-  const updateTitle = () => {
-    const updatedTitle = [...title];
-    updatedTitle[0] = "여자 코드 추천";
-    setTitle(updatedTitle);
-  };
 
   const sortTitle = () => {
     const sortedTitle = [...title].sort();
     setTitle(sortedTitle);
   };
 
+
   const changeModalState = () => {
     setModal(!modal);
   };
+
+  const [selectedTitle, setSelectedTitle] = useState(0);
+
+  const [makeTitle, setMakeTitle] = useState('');
+
+  const deleteTitle = (index) => {
+      const newTitle = title.filter((a,i)=>i !==index);
+      setTitle(newTitle);
+    }
+
+    const updateTitle = () => {
+        if(makeTitle){
+            //const newTitle = [...title, makeTitle];
+            //setTitle(newTitle);
+            //최상단에 올리는 로직은 아래에 다시 작성
+            const newTitle = [...title];
+            newTitle.unshift(makeTitle);
+            setTitle(newTitle);
+            setMakeTitle('');
+
+            const newLike = [...like, 0];
+            setLike(newLike);
+        }
+    };
+
+    const getCurrentDate = () => {
+        const currentDate = new Date();
+        const options = {month: 'long', day: 'numeric'};
+        return currentDate.toLocaleString('ko-KR', options);
+    }
 
   return (
     <div className="App">
@@ -54,35 +80,40 @@ function App() {
         <p>5월 23일 발행</p>
       </div>*/}
 
-      {title.map(function (a) {
+      {title.map(function (a,i) {
         return (
           <div className="list">
-            <h4>
-              <button
-                onClick={() => {
-                  setModal(changeModalState);
-                }}
-              >
-                {a}
-              </button>
-              <span onClick={likeCount}>👍</span> {like}
+            <h4 onClick={() => {changeModalState(); setSelectedTitle(i);}}>
+              {title[i]}
+              <span onClick={(e)=>{e.stopPropagation();
+                let copy = [...like];
+                copy[i] = copy[i] + 1;
+                setLike(copy);
+              }}>👍</span> {like[i]}
             </h4>
-            <p>5월 23일 발행</p>
+            <p>{getCurrentDate()}</p>
+            <button onClick={()=>deleteTitle(i)}>삭제</button>
           </div>
         );
       })}
-
-      {modal == true ? <Modal /> : null}
+       <input type="text" value={makeTitle} onChange={(e)=>{
+           setMakeTitle(e.target.value);
+           console.log(makeTitle)}
+       }
+       />
+       <button onClick={()=>{updateTitle()}}>글발행</button>
+      {modal == true ? <Modal color={'yellow'} title={title} selectedTitle={selectedTitle} updateTitle={updateTitle}/> : null}
     </div>
   );
 }
 
-function Modal() {
+function Modal(props) {
   return (
-    <div className="modal">
-      <h4>제목</h4>
+    <div className="modal" style={{background : props.color}}>
+      <h4>{props.title[props.selectedTitle]}</h4>
       <p>날짜</p>
       <p>상세내용</p>
+      <button onClick={props.updateTitle}>글수정</button>
     </div>
   );
 }
